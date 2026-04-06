@@ -1,0 +1,29 @@
+mlp_head:
+  hidden_dim: 256
+  learning_rate: 0.001
+  dropout: 0.3
+kan_head_mode_a:
+  hidden_dim: 256
+  learning_rate: 0.0005
+  grid_size: 5
+  spline_order: 3
+kan_head_mode_b:
+  hidden_dim: 28
+  learning_rate: 0.002
+  grid_size: 5
+  spline_order: 3
+bspline_mlp_head:
+  hidden_dim: 256
+  learning_rate: 0.002
+  dropout: 0.3
+  grid_size: 5
+  spline_order: 3
+training:
+  epochs: 50
+  batch_size: 128
+  scheduler: cosine_annealing
+  early_stopping_patience: 10
+  seeds:
+  - 42
+  - 123
+  - 456

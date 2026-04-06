@@ -197,34 +197,34 @@ def build_summary_table(summary_df: pd.DataFrame) -> str:
         rows = mode_summary(summary_df, mode)
         lines = [
             title,
-            "┌─────────────────┬────────────┬────────────┬─────────────────────┬─────────────────────┬──────────────┬──────────┐",
-            "│ Head            │ Total Params│ Head Params│ Test Accuracy       │ Test Loss           │ Conv. Epoch  │ Time/Ep  │",
-            "├─────────────────┼────────────┼────────────┼─────────────────────┼─────────────────────┼──────────────┼──────────┤",
+            "+-----------------+------------+------------+---------------------+---------------------+--------------+----------+",
+            "| Head            | Total Params| Head Params| Test Accuracy       | Test Loss           | Conv. Epoch  | Time/Ep  |",
+            "+-----------------+------------+------------+---------------------+---------------------+--------------+----------+",
         ]
         for row in rows.itertuples(index=False):
             acc_std = 0.0 if pd.isna(row.test_accuracy_std) else float(row.test_accuracy_std)
             loss_std = 0.0 if pd.isna(row.test_loss_std) else float(row.test_loss_std)
             conv_std = 0.0 if pd.isna(row.convergence_epoch_std) else float(row.convergence_epoch_std)
             lines.append(
-                f"│ {HEAD_LABELS[str(row.name)]:<15} │ "
-                f"{format_param_count(int(row.total_params)):>10} │ "
-                f"{format_param_count(int(row.head_params)):>10} │ "
-                f"{float(row.test_accuracy_mean):>6.4f} ± {acc_std:<6.4f} │ "
-                f"{float(row.test_loss_mean):>6.4f} ± {loss_std:<6.4f} │ "
-                f"{float(row.convergence_epoch_mean):>5.1f} ± {conv_std:<5.1f} │ "
-                f"{float(row.avg_time_per_epoch_mean):>6.1f}s │"
+                f"| {HEAD_LABELS[str(row.name)]:<15} | "
+                f"{format_param_count(int(row.total_params)):>10} | "
+                f"{format_param_count(int(row.head_params)):>10} | "
+                f"{float(row.test_accuracy_mean):>6.4f} +/- {acc_std:<6.4f} | "
+                f"{float(row.test_loss_mean):>6.4f} +/- {loss_std:<6.4f} | "
+                f"{float(row.convergence_epoch_mean):>5.1f} +/- {conv_std:<5.1f} | "
+                f"{float(row.avg_time_per_epoch_mean):>6.1f}s |"
             )
         lines.append(
-            "└─────────────────┴────────────┴────────────┴─────────────────────┴─────────────────────┴──────────────┴──────────┘"
+            "+-----------------+------------+------------+---------------------+---------------------+--------------+----------+"
         )
         return lines
 
     lines = [
-        "Table 2: Experiment 2 Results — CNN Classification Heads on CIFAR-10 (averaged across 3 seeds)",
+        "Table 2: Experiment 2 Results - CNN Classification Heads on CIFAR-10 (averaged across 3 seeds)",
         "",
-        *block_lines("A", "Mode A — Same Width (hidden=256), Different Parameter Counts"),
+        *block_lines("A", "Mode A - Same Width (hidden=256), Different Parameter Counts"),
         "",
-        *block_lines("B", "Mode B — Matched Parameters (~134-146K head params)"),
+        *block_lines("B", "Mode B - Matched Parameters (~134-146K head params)"),
     ]
     table_text = "\n".join(lines)
     with open(SUMMARY_TABLE_PATH, "w", encoding="utf-8") as handle:
@@ -583,7 +583,7 @@ def generate_training_speed_figure(summary_df: pd.DataFrame) -> str:
     ax.text(
         0.5,
         max_speed * 0.97,
-        f"Backbone dominates — head type has <{percent_impact:.1f}% speed impact",
+        f"Backbone dominates - head type has <{percent_impact:.1f}% speed impact",
         ha="center",
         va="top",
         transform=ax.get_yaxis_transform(),
@@ -660,11 +660,11 @@ def print_key_findings(summary_df: pd.DataFrame, all_results_df: pd.DataFrame) -
     speed_values = summary_df["avg_time_per_epoch_mean"].astype(float)
     speed_variation_pct = ((float(speed_values.max()) - float(speed_values.min())) / max(float(speed_values.min()), 1e-8)) * 100.0
 
-    print("═" * 75)
+    print("=" * 75)
     print("KEY FINDINGS")
-    print("═" * 75)
+    print("=" * 75)
     print()
-    print("1. MODE A — Does extra KAN capacity help?")
+    print("1. MODE A - Does extra KAN capacity help?")
     print("   KAN (1.34M head params) vs MLP (134K head params):")
     print(
         f"   Accuracy difference: {'+' if kan_a_margin >= 0 else '-'}{abs(kan_a_margin):.4f} "
@@ -676,7 +676,7 @@ def print_key_findings(summary_df: pd.DataFrame, all_results_df: pd.DataFrame) -
         "translate to proportional accuracy gains"
     )
     print()
-    print("2. MODE B — Which architecture wins at equal budget?")
+    print("2. MODE B - Which architecture wins at equal budget?")
     print(f"   Ranking: {ranking} by accuracy")
     print(
         f"   MLP vs KAN: {'MLP' if mlp_vs_kan_b >= 0 else 'KAN'} by {abs(mlp_vs_kan_b):.4f}"
@@ -707,7 +707,7 @@ def print_key_findings(summary_df: pd.DataFrame, all_results_df: pd.DataFrame) -
         row = mode_b.loc[model_name]
         conv_std = 0.0 if pd.isna(row["convergence_epoch_std"]) else float(row["convergence_epoch_std"])
         print(
-            f"   {HEAD_LABELS[model_name]}: {float(row['convergence_epoch_mean']):.1f} ± {conv_std:.1f} epochs"
+            f"   {HEAD_LABELS[model_name]}: {float(row['convergence_epoch_mean']):.1f} +/- {conv_std:.1f} epochs"
         )
     print(f"   -> {HEAD_LABELS[str(fastest_idx)]} converges fastest")
     print()
@@ -725,15 +725,15 @@ def print_key_findings(summary_df: pd.DataFrame, all_results_df: pd.DataFrame) -
             print(f"   {class_name}: spread {spread:.4f}")
     else:
         print(f"   No systematic per-class differences observed (max spread: {max_spread:.4f})")
-    print("═" * 75)
+    print("=" * 75)
 
 
 def print_final_summary() -> None:
     """Print the final analysis completion summary."""
     print()
-    print("═" * 75)
+    print("=" * 75)
     print("EXPERIMENT 2 ANALYSIS COMPLETE")
-    print("═" * 75)
+    print("=" * 75)
     print()
     print("Figures saved to: results/exp2/figures/")
     print("  - fig1_mode_a_accuracy.png")
@@ -748,7 +748,7 @@ def print_final_summary() -> None:
     print("Tables saved to: results/exp2/figures/summary_table.txt")
     print()
     print("Ready for Experiment 3 (Interpretability Analysis) and report writing.")
-    print("═" * 75)
+    print("=" * 75)
 
 
 def main() -> None:

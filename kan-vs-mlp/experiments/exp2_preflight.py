@@ -226,7 +226,7 @@ def test_model_construction() -> None:
         assert not torch.isnan(y).any(), f"{model_config['name']} produced NaN outputs"
         print(
             f"  {model_config['name']}: {format_param_count(total_params)} total, "
-            f"{format_param_count(head_params)} head — OK"
+            f"{format_param_count(head_params)} head - OK"
         )
         cleanup_model(model)
 
@@ -366,19 +366,19 @@ def test_mini_training_run() -> None:
         cleanup_model(model)
 
     print("Preflight Training Results (3 epochs, seed=42)")
-    print("┌──────────────────┬──────────────┬──────────────┬──────────┐")
-    print("│ Model            │ Val Acc (ep3)│ Train Loss   │ Time/Ep  │")
-    print("├──────────────────┼──────────────┼──────────────┼──────────┤")
+    print("+------------------+--------------+--------------+----------+")
+    print("| Model            | Val Acc (ep3)| Train Loss   | Time/Ep  |")
+    print("+------------------+--------------+--------------+----------+")
     for row in TRAIN_RESULTS:
         val_history = json.loads(row["val_accuracy_history"])
         train_history = json.loads(row["train_loss_history"])
         print(
-            f"│ {row['name']:<16} │ "
-            f"{float(val_history[-1]):>12.4f} │ "
-            f"{float(train_history[-1]):>12.4f} │ "
-            f"{float(row['avg_time_per_epoch']):>7.1f}s │"
+            f"| {row['name']:<16} | "
+            f"{float(val_history[-1]):>12.4f} | "
+            f"{float(train_history[-1]):>12.4f} | "
+            f"{float(row['avg_time_per_epoch']):>7.1f}s |"
         )
-    print("└──────────────────┴──────────────┴──────────────┴──────────┘")
+    print("+------------------+--------------+--------------+----------+")
 
 
 def test_evaluation_pipeline() -> None:
@@ -486,7 +486,7 @@ def test_csv_round_trip() -> None:
         if isinstance(decoded, dict):
             assert len(decoded) == 10, f"{column} should have 10 classes"
 
-    print("CSV round-trip verified — all columns present and JSON decodable")
+    print("CSV round-trip verified - all columns present and JSON decodable")
 
 
 def test_resume_logic() -> None:
@@ -678,10 +678,10 @@ def print_final_summary() -> None:
 def main() -> None:
     """Run all Phase 2 pre-flight tests."""
     run_test("Config Loading", test_config_loading)
-    run_test("Model Construction — All 6 Configs", test_model_construction)
+    run_test("Model Construction - All 6 Configs", test_model_construction)
     run_test("Data Loading Determinism", test_data_loading_determinism)
-    run_test("Mini Training Run — All 6 Models, 3 Epochs", test_mini_training_run)
-    run_test("Evaluation Pipeline — All 6 Models", test_evaluation_pipeline)
+    run_test("Mini Training Run - All 6 Models, 3 Epochs", test_mini_training_run)
+    run_test("Evaluation Pipeline - All 6 Models", test_evaluation_pipeline)
     run_test("Per-Class Accuracy", test_per_class_accuracy)
     run_test("Convergence Epoch Computation", test_convergence_epoch)
     run_test("CSV Save/Load Round-Trip", test_csv_round_trip)

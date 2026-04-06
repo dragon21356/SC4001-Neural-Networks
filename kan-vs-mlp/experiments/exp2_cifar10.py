@@ -99,7 +99,7 @@ def print_experiment_header(config: dict[str, Any]) -> None:
     estimated_hours = estimated_total_seconds / 3600.0
 
     print("=" * 79)
-    print("EXPERIMENT 2: CIFAR-10 CLASSIFICATION — CNN + SWAPPABLE HEADS")
+    print("EXPERIMENT 2: CIFAR-10 CLASSIFICATION - CNN + SWAPPABLE HEADS")
     print("=" * 79)
     print(json.dumps(config, indent=2))
     print(
@@ -168,26 +168,26 @@ def print_configuration_table(table_rows: list[dict[str, Any]]) -> None:
         table_rows: Enriched configuration rows with parameter counts.
     """
     print("Experiment 2 Configuration")
-    print("═" * 75)
-    print("┌──────────────────┬─────────────┬──────┬──────────────┬────────────┬─────────┐")
-    print("│ Name             │ Head Type   │ Mode │ Total Params │ Head Params│ LR      │")
-    print("├──────────────────┼─────────────┼──────┼──────────────┼────────────┼─────────┤")
+    print("=" * 75)
+    print("+------------------+-------------+------+--------------+------------+---------+")
+    print("| Name             | Head Type   | Mode | Total Params | Head Params| LR      |")
+    print("+------------------+-------------+------+--------------+------------+---------+")
     for row in table_rows:
         print(
-            f"│ {row['name']:<16} │ "
-            f"{row['head_type']:<11} │ "
-            f"{row['mode']:^4} │ "
-            f"{format_param_count(row['total_params']):>12} │ "
-            f"{format_param_count(row['head_params']):>10} │ "
-            f"{row['learning_rate']:>7.1e} │"
+            f"| {row['name']:<16} | "
+            f"{row['head_type']:<11} | "
+            f"{row['mode']:^4} | "
+            f"{format_param_count(row['total_params']):>12} | "
+            f"{format_param_count(row['head_params']):>10} | "
+            f"{row['learning_rate']:>7.1e} |"
         )
-    print("└──────────────────┴─────────────┴──────┴──────────────┴────────────┴─────────┘")
+    print("+------------------+-------------+------+--------------+------------+---------+")
     print()
     print("Mode A: Same hidden width (256), different parameter counts")
     print("  -> Tests whether KAN's extra expressiveness justifies its parameter cost")
     print("Mode B: Approximately matched parameters (~134-146K head params)")
     print("  -> Tests which architecture makes best use of a fixed parameter budget")
-    print("═" * 75)
+    print("=" * 75)
     print()
 
 
@@ -484,22 +484,23 @@ def print_mode_summary(
         title: Block title.
         summary_df: Summary rows for the mode.
     """
-    print(title)
-    print("┌──────────────────┬──────────────┬────────────┬─────────────────────┬──────────────────────┬───────────┐")
-    print("│ Model            │ Total Params │ Head Params│ Test Accuracy       │ Test Loss            │ Time/Ep   │")
-    print("├──────────────────┼──────────────┼────────────┼─────────────────────┼──────────────────────┼───────────┤")
+    if title:
+        print(title)
+    print("+------------------+--------------+------------+---------------------+----------------------+-----------+")
+    print("| Model            | Total Params | Head Params| Test Accuracy       | Test Loss            | Time/Ep   |")
+    print("+------------------+--------------+------------+---------------------+----------------------+-----------+")
     for row in summary_df.itertuples(index=False):
         test_acc_std = 0.0 if pd.isna(row.test_accuracy_std) else float(row.test_accuracy_std)
         test_loss_std = 0.0 if pd.isna(row.test_loss_std) else float(row.test_loss_std)
         print(
-            f"│ {str(row.name):<16} │ "
-            f"{format_param_count(int(row.total_params)):>12} │ "
-            f"{format_param_count(int(row.head_params)):>10} │ "
-            f"{float(row.test_accuracy_mean):>6.4f} ± {test_acc_std:<6.4f} │ "
-            f"{float(row.test_loss_mean):>6.4f} ± {test_loss_std:<6.4f} │ "
-            f"{float(row.avg_time_per_epoch_mean):>6.1f}s │"
+            f"| {str(row.name):<16} | "
+            f"{format_param_count(int(row.total_params)):>12} | "
+            f"{format_param_count(int(row.head_params)):>10} | "
+            f"{float(row.test_accuracy_mean):>6.4f} +/- {test_acc_std:<6.4f} | "
+            f"{float(row.test_loss_mean):>6.4f} +/- {test_loss_std:<6.4f} | "
+            f"{float(row.avg_time_per_epoch_mean):>6.1f}s |"
         )
-    print("└──────────────────┴──────────────┴────────────┴─────────────────────┴──────────────────────┴───────────┘")
+    print("+------------------+--------------+------------+---------------------+----------------------+-----------+")
     print()
 
 
@@ -555,17 +556,17 @@ def print_final_summary(
         total_experiment_time: Full wall-clock time for this script execution.
         checkpoint_dir: Directory containing saved checkpoints.
     """
-    print("═" * 75)
+    print("=" * 75)
     print("EXPERIMENT 2 RESULTS SUMMARY (averaged across 3 seeds)")
-    print("═" * 75)
+    print("=" * 75)
     print()
 
     mode_a = summary_df[summary_df["mode"] == "A"].sort_values(by="name")
     mode_b = summary_df[summary_df["mode"] == "B"].sort_values(by="name")
 
-    print("Mode A — Same Width (hidden=256), Different Parameters:")
+    print("Mode A - Same Width (hidden=256), Different Parameters:")
     print_mode_summary("", mode_a)
-    print("Mode B — Matched Parameters (~134-146K head params):")
+    print("Mode B - Matched Parameters (~134-146K head params):")
     print_mode_summary("", mode_b)
 
     best_mode_a = get_best_summary_row(summary_df, "A")
@@ -583,12 +584,12 @@ def print_final_summary(
     print("Key Findings:")
     print(
         f"  Mode A winner: {best_mode_a['name']} "
-        f"(accuracy {float(best_mode_a['test_accuracy_mean']):.4f} ± "
+        f"(accuracy {float(best_mode_a['test_accuracy_mean']):.4f} +/- "
         f"{0.0 if pd.isna(best_mode_a['test_accuracy_std']) else float(best_mode_a['test_accuracy_std']):.4f})"
     )
     print(
         f"  Mode B winner: {best_mode_b['name']} "
-        f"(accuracy {float(best_mode_b['test_accuracy_mean']):.4f} ± "
+        f"(accuracy {float(best_mode_b['test_accuracy_mean']):.4f} +/- "
         f"{0.0 if pd.isna(best_mode_b['test_accuracy_std']) else float(best_mode_b['test_accuracy_std']):.4f})"
     )
     print(
@@ -620,7 +621,7 @@ def print_final_summary(
     total_hours = int(total_experiment_time // 3600)
     total_minutes = int((total_experiment_time % 3600) // 60)
     print(f"Total experiment time: {total_hours} hours {total_minutes} minutes")
-    print("═" * 75)
+    print("=" * 75)
 
     best_mode_a_checkpoint = get_best_checkpoint_for_name(
         all_results_df=all_results_df,
@@ -634,10 +635,10 @@ def print_final_summary(
     )
     print()
     print(
-        f"Best model (Mode A): {best_mode_a['name']} — checkpoint at {best_mode_a_checkpoint}"
+        f"Best model (Mode A): {best_mode_a['name']} - checkpoint at {best_mode_a_checkpoint}"
     )
     print(
-        f"Best model (Mode B): {best_mode_b['name']} — checkpoint at {best_mode_b_checkpoint}"
+        f"Best model (Mode B): {best_mode_b['name']} - checkpoint at {best_mode_b_checkpoint}"
     )
 
 

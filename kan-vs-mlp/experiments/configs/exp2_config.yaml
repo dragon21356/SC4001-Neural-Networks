@@ -1,1 +1,79 @@
+# Experiment 2: CIFAR-10 Image Classification — CNN + Swappable Heads
+#
+# This experiment answers Research Question 2: Can a KAN layer serve as a
+# drop-in replacement for the MLP classification head in a CNN, and is
+# KAN's learnable B-spline activation function the source of any advantage?
+#
+# Two comparison modes:
+#   Mode A (same width): all heads use hidden_dim=256, different param counts
+#     -> Tests: given the same architectural width, does KAN's extra expressiveness help?
+#   Mode B (same params): heads adjusted to ~134K params, different widths
+#     -> Tests: given the same parameter budget, which architecture is most efficient?
 
+experiment_name: "exp2_cifar10"
+
+dataset:
+  name: "cifar10"
+  batch_size: 128
+  data_dir: "./data"
+  num_workers: 0  # Set to 2+ on Linux, 0 on Windows
+
+models:
+  - name: "MLP_ModeA"
+    head_type: "mlp"
+    mode: "A"
+    hidden_dim: 256
+    learning_rate: 0.001
+    dropout: 0.3
+
+  - name: "KAN_ModeA"
+    head_type: "kan"
+    mode: "A"
+    hidden_dim: 256
+    learning_rate: 0.0005
+    grid_size: 5
+    spline_order: 3
+
+  - name: "BSplineMLP_ModeA"
+    head_type: "bspline_mlp"
+    mode: "A"
+    hidden_dim: 256
+    learning_rate: 0.002
+    dropout: 0.3
+    grid_size: 5
+    spline_order: 3
+
+  - name: "MLP_ModeB"
+    head_type: "mlp"
+    mode: "B"
+    hidden_dim: 256
+    learning_rate: 0.001
+    dropout: 0.3
+
+  - name: "KAN_ModeB"
+    head_type: "kan"
+    mode: "B"
+    hidden_dim: 28
+    learning_rate: 0.002
+    grid_size: 5
+    spline_order: 3
+
+  - name: "BSplineMLP_ModeB"
+    head_type: "bspline_mlp"
+    mode: "B"
+    hidden_dim: 256
+    learning_rate: 0.002
+    dropout: 0.3
+    grid_size: 5
+    spline_order: 3
+
+training:
+  epochs: 50
+  scheduler: "cosine_annealing"
+  early_stopping_patience: 10
+  weight_decay: 0.0
+
+seeds: [42, 123, 456]
+
+output_dir: "results/exp2"
+checkpoint_dir: "results/exp2/checkpoints"

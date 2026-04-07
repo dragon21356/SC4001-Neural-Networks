@@ -685,7 +685,7 @@ def print_key_findings(summary_df: pd.DataFrame, all_results_df: pd.DataFrame) -
         f"   MLP vs BSpline-MLP: {'MLP' if mlp_vs_bspline_b >= 0 else 'BSpline-MLP'} by {abs(mlp_vs_bspline_b):.4f}"
     )
     print(
-        f"   -> At equal parameters, {HEAD_LABELS[str(mode_b_rows.iloc[0].name)]} is most efficient"
+        f"   -> At equal parameters, {HEAD_LABELS[str(mode_b_rows.iloc[0]['name'])]} is most efficient"
     )
     print()
     print("3. ACTIVATION FUNCTION HYPOTHESIS")

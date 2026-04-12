@@ -12,6 +12,7 @@ Note:
 
 from __future__ import annotations
 
+import importlib.util
 import os
 import traceback
 from typing import Callable
@@ -636,6 +637,63 @@ def test_plotting_utilities() -> None:
     print("Plotting works")
 
 
+def test_exp1_mlp_kan_parameter_matching() -> None:
+    """Guard Experiment 1 algebra: matched MLP width should track KAN parameter count.
+
+    ``compute_matched_mlp_hidden_dim`` solves a quadratic derived from
+    ``compute_mlp_parameter_formula`` vs ``compute_kan_parameter_count``; this
+    test checks both the closed-form counts and instantiated ``torch.nn`` models
+    stay within the same relative tolerance used in ``verify_parameter_match``.
+    """
+    root = os.path.dirname(os.path.abspath(__file__))
+    exp1_path = os.path.join(root, "experiments", "exp1_regression.py")
+    spec = importlib.util.spec_from_file_location("exp1_regression", exp1_path)
+    assert spec is not None and spec.loader is not None
+    er = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(er)
+
+    kan_in, kan_out, kan_hidden = 8, 1, 64
+    grid_orders = [(3, 2), (5, 3), (10, 3), (20, 2)]
+    tolerance = 0.10
+
+    for grid_size, spline_order in grid_orders:
+        kan_n = er.compute_kan_parameter_count(
+            kan_in, kan_hidden, kan_out, grid_size, spline_order
+        )
+        h = er.compute_matched_mlp_hidden_dim(
+            kan_in, kan_hidden, kan_out, grid_size, spline_order
+        )
+        mlp_n = er.compute_mlp_parameter_formula(kan_in, h, kan_out)
+        gap_formula = abs(mlp_n - kan_n) / max(kan_n, 1)
+        assert gap_formula <= tolerance, (
+            f"Formula mismatch G={grid_size} K={spline_order}: "
+            f"MLP={mlp_n} KAN={kan_n} gap={gap_formula:.4f}"
+        )
+
+        kan_model = KANRegressor(
+            in_features=kan_in,
+            hidden_dim=kan_hidden,
+            out_features=kan_out,
+            grid_size=grid_size,
+            spline_order=spline_order,
+        )
+        mlp_model = MLPRegressor(
+            in_features=kan_in,
+            hidden_dim=h,
+            out_features=kan_out,
+            dropout=0.1,
+        )
+        kan_p = count_parameters(kan_model)
+        mlp_p = count_parameters(mlp_model)
+        gap_inst = abs(mlp_p - kan_p) / max(kan_p, 1)
+        assert gap_inst <= tolerance, (
+            f"Instantiated mismatch G={grid_size} K={spline_order}: "
+            f"MLP={mlp_p} KAN={kan_p} gap={gap_inst:.4f}"
+        )
+
+    print("Experiment 1 MLP/KAN parameter matching (formula + models) OK")
+
+
 def test_convergence_epoch_computation() -> None:
     """Verify convergence epoch calculation."""
     history = {"val_metric": [0.3, 0.5, 0.7, 0.85, 0.88, 0.90, 0.91, 0.91]}
@@ -713,6 +771,7 @@ def main() -> None:
         ("Spline Visualization Pipeline", test_spline_visualization_pipeline),
         ("Utilities - Save/Load Results CSV", test_save_load_results_csv),
         ("Utilities - Plotting", test_plotting_utilities),
+        ("Experiment 1 MLP/KAN Parameter Matching", test_exp1_mlp_kan_parameter_matching),
         ("Convergence Epoch Computation", test_convergence_epoch_computation),
         ("Early Stopping", test_early_stopping_behavior),
         ("Per-Class Accuracy", test_per_class_accuracy),

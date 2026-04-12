@@ -149,12 +149,19 @@ def compute_matched_mlp_hidden_dim(
         )
         PROMPT_FORMULA_WARNING_EMITTED = True
 
-    discriminant = (kan_in + kan_out + 2) ** 2 - 4 * (1 - kan_out - kan_total_params)
-    hidden_dim = int(
-        round(
-            (-(kan_in + kan_out + 2) + math.sqrt(max(discriminant, 0.0))) / 2.0
-        )
-    )
+    # Match MLPRegressor total parameters (see ``compute_mlp_parameter_formula``) to
+    # ``kan_total_params``. With hidden width H, the three Linear layers contribute:
+    #   H^2 + H * (kan_in + kan_out + 2) + kan_out.
+    # Setting this equal to kan_total_params and rearranging gives
+    #   H^2 + b * H + c = 0
+    # with b = kan_in + kan_out + 2 and c = kan_out - kan_total_params.
+    # The positive root is used (then rounded). Discriminant: b^2 - 4*c.
+    # Note: an earlier draft used (1 - kan_out - kan_total_params) inside the
+    # discriminant, which is not the constant term c for this MLP parameterization.
+    b = kan_in + kan_out + 2
+    c = kan_out - kan_total_params
+    discriminant = b * b - 4 * c
+    hidden_dim = int(round((-b + math.sqrt(max(discriminant, 0.0))) / 2.0))
     return max(hidden_dim, 4)
 
 
